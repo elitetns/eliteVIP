@@ -1,9 +1,0 @@
-Package: com.local.evoassist
-Name: EvoAssist
-Version: 2.0.0
-Architecture: iphoneos-arm
-Description: Self-contained Touch-first EvoWars assistant for the iOS Cordova client.
-Maintainer: Local Build
-Author: Local Build
-Section: Tweaks
-Depends: firmware (>= 15.0), mobilesubstrate (>= 0.9.5000)
