@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>EvoAssist Harness</title>
+    <style>
+        html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #263238; }
+        #c2canvas { width: 100vw; height: 100vh; display: block; background: #38474e; }
+    </style>
+</head>
+<body>
+    <canvas id="c2canvas" width="1280" height="720"></canvas>
+    <script>
+        localStorage.removeItem("evoassist.config.v1");
+
+        function TouchPlugin() {}
+
+        var touchStats = { start: 0, move: 0, end: 0 };
+        var activeTouches = new Map();
+        var touchInstance = {
+            onTouchStart: function (event) {
+                touchStats.start += 1;
+                event.changedTouches.forEach(function (touch) { activeTouches.set(touch.identifier, touch); });
+            },
+            onTouchMove: function (event) {
+                touchStats.move += 1;
+                event.changedTouches.forEach(function (touch) { activeTouches.set(touch.identifier, touch); });
+            },
+            onTouchEnd: function (event) {
+                touchStats.end += 1;
+                event.changedTouches.forEach(function (touch) { activeTouches.delete(touch.identifier); });
+            }
+        };
+
+        var layout = { scrollX: 0, scrollY: 0, layers: [] };
+        var worldLayer = {
+            name: "World",
+            scale: 1,
+            getScale: function () { return this.scale; },
+            layerToCanvas: function (x, y, isX) {
+                return isX ? 640 + (x - layout.scrollX) * this.scale : 360 + (y - layout.scrollY) * this.scale;
+            },
+            setZIndicesStaleFrom: function () {}
+        };
+        var uiLayer = {
+            name: "UI",
+            scale: 1,
+            getScale: function () { return this.scale; },
+            layerToCanvas: function (x, y, isX) { return isX ? x : y; },
+            setZIndicesStaleFrom: function () {}
+        };
+        layout.layers = [worldLayer, uiLayer];
+
+        function player(uid, x, y, level) {
+            var vars = new Array(72).fill(0);
+            vars[10] = level;
+            return { uid: uid, x: x, y: y, width: 100, height: 100, layer: worldLayer, instance_vars: vars };
+        }
+
+        var localPlayer = player(1, 0, 0, 10);
+        var enemy = player(2, 220, 0, 10);
+        var worker = {
+            postMessage: function (message) {
+                window.__lastWorkerMessage = JSON.parse(JSON.stringify(message));
+            }
+        };
+
+        window.__touchStats = touchStats;
+        window.__worker = worker;
+        window.cr = { plugins_: { Touch: TouchPlugin } };
+
+        var runtime = {
+            width: 1280,
+            height: 720,
+            canvas: document.getElementById("c2canvas"),
+            versionstr: "2.18.9-harness",
+            running_layout: layout,
+            types_by_index: [
+                { name: "t110", instvar_sids: new Array(72), instances: [localPlayer, enemy] },
+                { name: "t200", plugin: new TouchPlugin(), instances: [touchInstance] },
+                { name: "t370", instances: [{ uid: 370, x: 1130, y: 610, width: 110, height: 80, visible: true, layer: uiLayer }] },
+                { name: "t372", instances: [{ uid: 372, x: 150, y: 575, width: 130, height: 130, visible: true, layer: uiLayer }] },
+                { name: "t500", instances: [{ wsWorker: worker }] }
+            ]
+        };
+
+        window.cr_getC2Runtime = function () { return runtime; };
+        window.__runtime = runtime;
+    </script>
+    <script src="../layout/Library/Application%20Support/EvoAssist/evoassist.js"></script>
+</body>
+</html>
+

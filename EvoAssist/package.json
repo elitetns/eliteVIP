@@ -1,0 +1,14 @@
+{
+  "name": "evoassist-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:project && npm run test:payload && npm run test:ui",
+    "test:project": "node scripts/check-project.js",
+    "test:payload": "node scripts/check-payload.js",
+    "test:ui": "playwright install chromium && node tests/playwright-smoke.js"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}
